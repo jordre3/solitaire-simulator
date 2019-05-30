@@ -5,7 +5,7 @@
 
     /**
      * This class is the main solitaire game class. It uses the classes Deck, Card, and Tableau to
-     * execute a solitaire simulation game.
+     * execute a solitaire simulation game. Nate's Change.
      * @author Colin Tate from Jacob's Solitaire.java
      * @version February 17 2019
      */
