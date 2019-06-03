@@ -17,10 +17,13 @@
         double overall_Probability = 0;
         double overall_Time = 0;
         double overall_NumberOfMoves = 0;
+        double overall_WinsAdded = 0;
+        double num_MoreThan75 = 0;
+        double num_LessThan60 = 0;
         vector<double> *probabilities = new vector<double>();
         vector<double> *execution = new vector<double>();
-        int NumberOfSimulations = 10;
-        int NumberOfGames = 2000;
+        int NumberOfSimulations = 200;
+        int NumberOfGames = 5000;
 
         //Repsonsible for looping through and doing a specified number of rounds
         for(int j = 0; j<NumberOfSimulations;j++) {
@@ -106,11 +109,17 @@
 
             probabilities->push_back(counter/i);
             execution->push_back(seconds/i);
-
+            if(counter / i > .750){
+                num_MoreThan75++;
+            }
+            else if(counter / i < .6){
+                num_LessThan60++;
+            }
             overall_Count += counter;
             overall_Probability += counter / i;
             overall_Time += seconds / i;
             overall_NumberOfMoves+= numberOfMoves / i;
+            overall_WinsAdded += winsAdded;
         }
 
         //Prints out the stats for the overall games
@@ -120,6 +129,10 @@
         cout << "\nAVERAGE (Mean) PROBABILITY: " << overall_Probability/NumberOfSimulations << " (" << (overall_Probability/NumberOfSimulations)*100 << "%)";
         cout << "\nAVERAGE (Mean) NUMBER OF MOVES: " << overall_NumberOfMoves/NumberOfSimulations;
         cout << "\nAVERAGE (Mean) EXECUTION TIME PER SIMULATION: " << overall_Time/NumberOfSimulations << " seconds";
+        cout << "\nAVERAGE (Mean) NUMBER OF WINS ADDED: " << overall_WinsAdded/NumberOfSimulations << " Wins";
+        cout << "\nPERCENTAGE OF LOSSES CHANGED TO WINS: " << (overall_WinsAdded/NumberOfSimulations)/(NumberOfGames - ((overall_Count/NumberOfSimulations)-(overall_WinsAdded/NumberOfSimulations)));
+        cout << "\nNUMBER OF SIMULATIONS WITH PROBABLITY OVER 75: " <<  num_MoreThan75;
+        cout << "\nNUMBER OF SIMULATIONS WITH PROBABILTY UNDER 60: " << num_LessThan60;
 
         double prob_sd = 0;
         double ex_sd = 0;
