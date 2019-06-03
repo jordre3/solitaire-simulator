@@ -23,7 +23,7 @@
         vector<double> *probabilities = new vector<double>();
         vector<double> *execution = new vector<double>();
         int NumberOfSimulations = 200;
-        int NumberOfGames = 5000;
+        int NumberOfGames = 2000;
 
         //Repsonsible for looping through and doing a specified number of rounds
         for(int j = 0; j<NumberOfSimulations;j++) {
@@ -33,10 +33,10 @@
             double winsAdded = 0;
             double seconds = 0;
             double numberOfMoves = 0;
-
+#pragma omp parallel for
             //Responsible for looping through the number Of games
-            while (i < NumberOfGames) {
-
+            for (int a = 0; a < NumberOfGames; a++) {
+                i = a;
                 //Starts the clock to measure run time of a game
                 time_t begin = clock();
                 srand(time(0));
@@ -95,7 +95,6 @@
                 time_t end = clock();
                 seconds = seconds + (double) (end - begin) / CLOCKS_PER_SEC;
 
-                i++;
 
             }
             //Prints out the information for the particular round
@@ -109,10 +108,10 @@
 
             probabilities->push_back(counter/i);
             execution->push_back(seconds/i);
-            if(counter / i > .750){
+            if(counter / i > .725){
                 num_MoreThan75++;
             }
-            else if(counter / i < .6){
+            else if(counter / i < .6315){
                 num_LessThan60++;
             }
             overall_Count += counter;
@@ -131,8 +130,8 @@
         cout << "\nAVERAGE (Mean) EXECUTION TIME PER SIMULATION: " << overall_Time/NumberOfSimulations << " seconds";
         cout << "\nAVERAGE (Mean) NUMBER OF WINS ADDED: " << overall_WinsAdded/NumberOfSimulations << " Wins";
         cout << "\nPERCENTAGE OF LOSSES CHANGED TO WINS: " << (overall_WinsAdded/NumberOfSimulations)/(NumberOfGames - ((overall_Count/NumberOfSimulations)-(overall_WinsAdded/NumberOfSimulations)));
-        cout << "\nNUMBER OF SIMULATIONS WITH PROBABLITY OVER 75: " <<  num_MoreThan75;
-        cout << "\nNUMBER OF SIMULATIONS WITH PROBABILTY UNDER 60: " << num_LessThan60;
+        cout << "\nNUMBER OF SIMULATIONS WITH PROBABLITY OVER 72.5: " <<  num_MoreThan75;
+        cout << "\nNUMBER OF SIMULATIONS WITH PROBABILTY UNDER 63.15: " << num_LessThan60;
 
         double prob_sd = 0;
         double ex_sd = 0;
