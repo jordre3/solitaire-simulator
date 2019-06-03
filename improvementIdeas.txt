@@ -1,4 +1,0 @@
-improvement ideas:
-
--when moving to empty column, move the stack with the highest
-startpoint rather than just the first.
