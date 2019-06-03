@@ -10,11 +10,13 @@
  * @version Febuary 16 2019
  */
 
+/*
     // An arrayList of the deck of cards
     vector<Card> deck;
 
     //A Number of cards for the deck
     int NumberOfCards;
+*/
 
     /**
      * Default constructor. It simply creates a deck of 52 cards

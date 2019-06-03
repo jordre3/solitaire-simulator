@@ -37,6 +37,12 @@ public:
 
 	Solitaire(int type);
 
+
+	bool playInReverse(GameBoard *t);
+
+	bool checkStockReverse(GameBoard *t);
+
+	bool checkTableauReverse(GameBoard *t);
 	/**
 	* This method is used for checking the stock pile. First, it checks to see if the card on the stock
 	* pile can be moved to a destination pile. It then checks to see if it can be moved to somewhere on
@@ -49,6 +55,7 @@ public:
 	*		tableau and see if we can do any moves down there
 	*/
 	bool checkStock(GameBoard *t);
+
 
 	/**
 	*This method is responsible for simply moving a stoack card to the new pile it belongs on

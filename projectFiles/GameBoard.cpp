@@ -11,7 +11,7 @@
  * @version February 16 2019
  */
 
-    //A Tableau object, consisting of a vector of vectors of cards
+    /*//A Tableau object, consisting of a vector of vectors of cards
     vector<vector<Card>> tableau;
 
     //The stock pile for the solitaire game
@@ -24,7 +24,7 @@
     vector<vector<Card>> destination;
 
     //
-    int stockCounter;
+    int stockCounter;*/
 
     /**
      * Default constructor for the game board. It creates the 7 column tableau and puts cards in it, sets the

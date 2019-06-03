@@ -11,7 +11,7 @@
      */
     Solitaire::Solitaire(int type) {
         Deck d = Deck();
-        vector<Card> *deck = d.getDeck();
+        //vector<Card> *deck = d.getDeck();
 
         double overall_Count = 0;
         double overall_Probability = 0;
@@ -19,14 +19,15 @@
         double overall_NumberOfMoves = 0;
         vector<double> *probabilities = new vector<double>();
         vector<double> *execution = new vector<double>();
-        int NumberOfSimulations = 5;
-        int NumberOfGames = 100;
+        int NumberOfSimulations = 10;
+        int NumberOfGames = 2000;
 
         //Repsonsible for looping through and doing a specified number of rounds
         for(int j = 0; j<NumberOfSimulations;j++) {
 
             double i = 0;
             double counter = 0;
+            double winsAdded = 0;
             double seconds = 0;
             double numberOfMoves = 0;
 
@@ -46,12 +47,12 @@
                     d.shuffle_LOSE();
 
                 //Creates a new deck and gameboard
-                deck = d.getDeck();
+                //deck = d.getDeck();
                 GameBoard t = GameBoard(d);
                 GameBoard temp = t;
 
                 double numMoves = 0;
-
+                //t.printGameBoard();
                 //A loop that executes the solitaire game
                 while (*t.getStockCounter() < 3) {
                     bool tab = true;
@@ -80,9 +81,13 @@
                     counter++;
                     numberOfMoves+=numMoves;
                 }
-                //else
-                  //cout << "YOU LOSE" << endl;
-
+                else {
+                    bool win = playInReverse(&temp);
+                    if(win){
+                        winsAdded++;
+                        counter++;
+                    }
+                }
                   // Computes runtime for the game
                 time_t end = clock();
                 seconds = seconds + (double) (end - begin) / CLOCKS_PER_SEC;
@@ -92,8 +97,9 @@
             }
             //Prints out the information for the particular round
             cout << "\n--------------------------------------------------------------------------------------------------------------------------------------------------------";
-            cout << "\nGAME: " << j +1 ;
+            cout << "\nGAME: " << j + 1 ;
             cout << "\nWINS: " << counter;
+            cout << "\nWINS ADDED: " << winsAdded;
             cout << "\nPROBABILITY: " << counter / i << " (" << (counter / i) * 100 << "%)";
             cout << "\nAVERAGE NUMBER OF MOVES: " << numberOfMoves / i;
             cout << "\nAVERAGE EXECUTION TIME PER SIMULATION: " << seconds / i << " seconds";
@@ -130,6 +136,247 @@
         cout << "\n********************************************************************************************************************************************************";
     }
 
+
+    bool Solitaire::playInReverse(GameBoard *t){
+        t->stockCounter = 0;
+        //std::cout<<"CALLED REVERSE"<<std::endl;
+        //t->printGameBoard();
+        while (*t->getStockCounter() < 3) {
+            bool tab = true;
+            bool stock = false;
+            while (tab) {
+                tab = checkTableauReverse(t);
+                //t->printGameBoard();
+                /*if(tab)
+                    */
+            }
+            while (!stock) {
+                stock = checkStockReverse(t);
+                /*if(stock)
+                    numMoves++;*/
+                //t->printGameBoard();
+            }
+        }
+        if (t->destination.at(0).size() == 13 && t->destination.at(1).size() == 13 &&
+            t->destination.at(2).size() == 13 && t->destination.at(3).size() == 13) {
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    bool Solitaire::checkStockReverse(GameBoard *t) {
+        vector<vector<Card>> *board = t->getTableau();
+        vector<Card> *stock = t->getStock();
+        vector<Card> *discard = t->getDiscard();
+        vector<vector<Card>> *destination = t->getDestination();
+
+        //If the stock is not empty:
+        if (!stock->empty()) {
+            Card compC = stock->at(0);
+            compC.makeVisible();
+
+            //Check to see if the stock card can be placed in any of the 4 destination piles
+            for (int j = 0; j < 4; j++) {
+                vector<Card> &dest = destination->at(j);
+                if (!dest.empty()) {
+                    Card card = dest.at(dest.size()-1);
+                    bool b = t->validDestinationMove(compC, card);
+                    //If it is a valid move, move the stock card, and flip a new stock card over
+                    if (b) {
+                        stockMoveCard(stock,&dest,&compC,t);
+                        return true;
+                    }
+                }
+
+                    //If the stock card is an Ace, it can be automatically placed in one of the empty destination piles
+                else if (compC.getRank() == 1) {
+                    stockMoveCard(stock,&dest,&compC,t);
+                    return true;
+                }
+            }
+
+            //Check if it can be placed on any of the bottom columns
+            for (int i = 6; i >= 0; i--) {
+                vector<Card> &col = board->at(i);
+                if (!col.empty()) {
+                    Card c = col.at(col.size()-1);
+                    if (c.getVisibility()) {
+                        bool b = t->validTableauMove(compC, c);
+                        if (b) {
+                            //If it is a valid move, move the stock card, and flip a new stock card over
+                            stockMoveCard(stock,&col,&compC,t);
+                            return true;
+                        }
+                    }
+                }
+                    //If the tableau column is empty, then the stock card can be placed in the empty column
+                else {
+                    stockMoveCard(stock,&col,&compC,t);
+                    return true;
+                }
+            }
+
+            //If the card couldn't be placed, remove the card from the stock and put it into the Discard Pile
+            compC.makeInvisible();
+            discard->push_back(compC);
+            stock->erase(stock->begin());
+
+            //If the stock isn't empty, flip over a new card
+            if (!stock->empty()) {
+                stock->at(0).makeVisible();
+                return false;
+            }
+                //If the stock is empty, the counter is incremented, and the discard pile become the stock again
+            else {
+                //cout << "COUNTER INCREMENTED" << endl;
+                t->incrementStockCounter();
+                t->swapStockAndDiscard();
+                if (*t->getStockCounter() < 3)
+                    return false;
+                else
+                    return true;
+            }
+        }
+
+            //If the stock is empty, the counter is incremented, and the discard pile become the stock again
+        else if (*t->getStockCounter() < 3) {
+            //cout << "COUNTER INCREMENTED" << endl;
+            t->incrementStockCounter();
+            t->swapStockAndDiscard();
+            return false;
+        } else
+            return true;
+    }
+
+    bool Solitaire::checkTableauReverse(GameBoard *t) {
+        vector<vector<Card>> *board = t->getTableau();
+        vector<vector<Card>> *destination = t->getDestination();
+
+        //Checks if any of the cards below can be moved to the Top
+        for (int i = 0; i < 7; i++) {
+            //gets a column of the tableau
+            vector<Card> &col = board->at(i);
+            if (!col.empty()) {
+                //each ending card in each column is checked to see if it can be moved above
+                Card colCard = col.at(col.size() - 1);
+                for (int j = 0; j < 4; j++) {
+                    vector<Card> &dest = destination->at(j);
+                    if (colCard.getVisibility()) {
+                        if (!dest.empty()) {
+                            Card destCard = dest.at(dest.size() - 1);
+                            bool b = t->validDestinationMove(colCard, destCard);
+                            if (b) {
+                                dest.push_back(col.at(col.size() - 1));
+                                col.erase(col.begin() + col.size() - 1);
+                                if (!col.empty())
+                                    col.at(col.size() - 1).makeVisible();
+                                return true;
+                            }
+                        } else if (colCard.getRank() == 1) {
+                            col.erase(col.begin() + col.size() - 1);
+                            dest.push_back(colCard);
+                            if (!col.empty())
+                                col.at(col.size() - 1).makeVisible();
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        //Check if any of the bottom cards can be moved to eachother
+        for (int i = 6; i >= 0; i--) {
+            //gets a column of the tableau
+            vector<Card> &col = board->at(i);
+            if (!col.empty()) {
+                for (int k = 0; k < col.size(); k++) {
+                    //Checks each card in that column of the tableau
+                    Card colCard = col.at(k);
+                    if (colCard.getVisibility()) {
+                        for (int j = i - 1; j > 0; j--) {
+                            //gets a different column of the tableau
+                            vector<Card> &dest = board->at(j);
+                            if (!dest.empty()) {
+                                for (int m = 0; m < dest.size(); m++) {
+                                    //checks each card in that other column of the tableau
+                                    Card destCard = dest.at(m);
+                                    if (destCard.getVisibility()) {
+                                        //Checks both ways to see if either move is valid
+                                        bool a = t->validTableauMove(colCard, destCard);
+                                        bool b = t->validTableauMove(destCard, colCard);
+
+                                        //I chose to only allow cards to swap, if this card is not part of a run already
+                                        //for example a 2 of hearts can be moved to a 3 only if the 2 isn't already on another 3
+                                        if (a && m == (dest.size() - 1) &&
+                                            (k == 0 || !(col.at(k - 1).getVisibility()))) {
+                                            int size = col.size();
+                                            for (int n = k; n < size; n++) {
+                                                dest.push_back(col.at(k));
+                                                col.erase(col.begin() + k);
+                                            }
+                                            if (!col.empty())
+                                                col.at(col.size() - 1).makeVisible();
+                                            return true;
+                                        }
+                                            //I chose to only allow cards to swap, if this card is not part of a run already
+                                            //for example a 2 of hearts can be moved to a 3 only if the 2 isn't already on another 3
+                                        else if (b && k == (col.size() - 1) &&
+                                                 (m == 0 || !(dest.at(m - 1).getVisibility()))) {
+                                            int size = dest.size();
+                                            for (int n = m; n < size; n++) {
+                                                col.push_back(dest.at(m));
+                                                dest.erase(dest.begin() + m);
+                                            }
+                                            if (!dest.empty())
+                                                dest.at(dest.size() - 1).makeVisible();
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //If no cards can be moved onto one another, this loop checks to see if there are any empty rows
+        //and if there are, it moves a stack onto an empty row to reveal a non-visible card
+        for (int i = 0; i < 7; i++) {
+            //gets a column of the tableau
+            vector<Card> &emptyCol = board->at(i);
+            //If the row is empty, we want to then move a visible stack of cards to this to turn over a non-visble card
+            if (emptyCol.empty()) {
+
+                for (int j = 6; j >= 0; j--) {
+                    vector<Card> &col = board->at(j);
+
+                    //Find the first row that contains cards in it
+                    if (!col.empty()) {
+                        if(!col.at(0).getVisibility()) {
+
+                            for (int m = 0; m < col.size(); m++) {
+                                Card destCard = col.at(m);
+                                if (destCard.getVisibility()) {
+                                    int size = col.size();
+                                    for (int n = m; n < size; n++) {
+                                        emptyCol.push_back(col.at(m));
+                                        col.erase(col.begin() + m);
+                                    }
+                                    col.at(col.size() - 1).makeVisible();
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
     /**
      * This method is used for checking the stock pile. First, it checks to see if the card on the stock
      * pile can be moved to a destination pile. It then checks to see if it can be moved to somewhere on
